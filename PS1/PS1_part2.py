@@ -18,16 +18,45 @@ def RCHighPass(w,R,C):
     VHighPass = abs(w*R*C/np.sqrt(1+(w*R*C)**2))
     return VHighPass
 def BodePlot(Vgain,f,labels):
-    plt.plot(f,Vgain, label= labels)
-    plt.ylabel('Vout / Vin')
-    plt.xlabel('Log(frequency)')
-    plt.xlim(0,100000)
-    plt.xscale('log',base =10)
+    plt.plot(np.log10(f),Vgain, label= labels)
+    plt.ylabel('20*log(Vout / Vin)')
+    plt.xlabel('log(frequency)')
+    plt.xlim(-2,6)
+    plt.ylim(-30,5)
     plt.legend()
     return plt
+def BodePhaseHigh(w,R,C, labels):
+    PhaseS = np.degrees(np.arctan(1/(w*R*C)))
+    plt.plot(np.log10(f),PhaseS, label= labels)
+    plt.ylabel('Phase Shift')
+    plt.xlabel('log(frequency)')
+    plt.legend()
+    return plt
+def BodePhaseLow(w,R,C, labels):
+    PhaseS = np.degrees(-np.arctan((w*R*C)))
+    plt.plot(np.log10(f),PhaseS, label= labels)
+    plt.ylabel('Phase Shift (degrees)')
+    plt.xlabel('log(frequency')
+    plt.ylim(-100,100)
+    plt.legend()
+    return plt
+def VOutPlot(Vgain,t,labels):
+    V_step = Vgain * Vbool
+    plt.plot(t,V_step)
+    plt.title(labels)
+    plt.xlabel('time (s)')
+    plt.ylabel('Voltage Output')
+    plt.xlim(0,1)
+    return plt
 
-f = np.logspace(1,6,num=600,base=10)
+f = np.logspace(-2,6,num=1000,base=10)
 w = 2*np.pi*f
+t = 1/f
+
+Vbool = (t>.1)
+plt.plot(t,Vbool)
+plt.xlim(0,1)
+plt.show()
 #%%
 R = [47*10**3,1*10**3]
 C = [0.2*10**-6, 0.1*10**-6]
@@ -38,9 +67,25 @@ for i in index:
     VHigh = RCHighPass(w, R[i], C[i])
     VRatio_Low = BodeVoltageGainVgain(VLow)
     VRatio_High = BodeVoltageGainVgain(VHigh)
-    i = str(i +1)
-    V_plot_Low = BodePlot(VRatio_Low, f,'Low Pass '+ i)
-    V_plot_High = BodePlot(VRatio_High, f,'High Pass '+ i)
-
+    j = str(i +1)
+    V_plot_Low = BodePlot(VRatio_Low, f,'Low Pass '+ j)
+    V_plot_High = BodePlot(VRatio_High, f,'High Pass '+ j)
+    plt.title('Frequency vs 20*log(Vgain)')
     plt.show()
+#%%
+for i in index:
+    PhaseLow = BodePhaseLow(w, R[i], C[i], 'Low ' + str(i +1))
+    PhaseHigh = BodePhaseHigh(w, R[i], C[i], 'High ' + str(i +1))
+    plt.title('Frequency vs Phase Shift')
+    plt.show()
+#%%
 
+#%%
+for i in index:  
+    j = str(i +1)
+    VLow = RCLowPass(w, R[i], C[i])
+    VOut = VOutPlot(VLow, t,'Low Pass '+ j)
+    plt.show()
+    VHigh = RCHighPass(w, R[i], C[i])
+    VOut = VOutPlot(VHigh, t,'High Pass '+ j)
+    plt.show()
